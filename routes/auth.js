@@ -14,15 +14,20 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ ok: false, message: "Invalid badge or PIN" });
     }
 
-    const weather = await answerQuery({ text: "weather", paramedic });
-    const schedule = await answerQuery({ text: "schedule", paramedic });
-    const compliance = await answerQuery({ text: "compliance", paramedic });
+    let briefing = `Morning ${paramedic.first_name}!`;
+    try {
+      const [weather, schedule, compliance] = await Promise.allSettled([
+        answerQuery({ text: "weather", paramedic }),
+        answerQuery({ text: "schedule", paramedic }),
+        answerQuery({ text: "compliance", paramedic }),
+      ]);
+      const s = (r) => (r.status === "fulfilled" ? r.value : "");
+      briefing = `Morning ${paramedic.first_name}! ${s(schedule)} ${s(weather)} ${s(compliance)}`.trim();
+    } catch (err) {
+      console.warn("[auth] briefing fetch failed, continuing login", err.message);
+    }
 
-    res.json({
-      ok: true,
-      paramedic,
-      briefing: `Morning ${paramedic.first_name}! ${schedule} ${weather} ${compliance}`
-    });
+    res.json({ ok: true, paramedic, briefing });
   } catch (error) {
     console.error("[auth] login failed", error);
     res.status(500).json({ ok: false, message: "Login failed" });
