@@ -4,8 +4,12 @@
   "description": "ParaHelper backend for hackathon",
   "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "dev": "node server.js",
     "seed:chroma": "node setupChromaDB.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "axios": "^1.7.9",
