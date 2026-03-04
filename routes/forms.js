@@ -47,4 +47,92 @@ router.post("/send", async (req, res) => {
   }
 });
 
+// Shift-start ambulance vehicle inventory (car check)
+router.post("/vehicle-check", async (req, res) => {
+  try {
+    const {
+      paramedic_id,
+      paramedic_name,
+      unit_number,
+      shift_date,
+      shift_time,
+      station_location,
+      checks,
+      notes,
+      report_type
+    } = req.body;
+
+    if (!paramedic_id || !unit_number || !shift_date) {
+      return res
+        .status(400)
+        .json({ ok: false, message: "paramedic_id, unit_number and shift_date are required" });
+    }
+
+    const formsDb = getDb("parahelper_forms");
+    const collection = formsDb.collection("vehicle_checks");
+
+    const doc = {
+      paramedic_id,
+      paramedic_name,
+      unit_number,
+      shift_date,
+      shift_time,
+      station_location,
+      checks: checks || {},
+      notes: notes || "",
+      report_type: report_type || "standard",
+      created_at: new Date()
+    };
+
+    await collection.insertOne(doc);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("[forms] vehicle-check failed", error);
+    res.status(500).json({ ok: false, message: "Vehicle check save failed" });
+  }
+});
+
+// Ambulance equipment inventory form
+router.post("/equipment-inventory", async (req, res) => {
+  try {
+    const {
+      paramedic_id,
+      paramedic_name,
+      unit_number,
+      shift_date,
+      items,
+      expiry_items,
+      notes,
+      report_type
+    } = req.body;
+
+    if (!paramedic_id || !unit_number || !shift_date) {
+      return res
+        .status(400)
+        .json({ ok: false, message: "paramedic_id, unit_number and shift_date are required" });
+    }
+
+    const formsDb = getDb("parahelper_forms");
+    const collection = formsDb.collection("equipment_inventory");
+
+    const doc = {
+      paramedic_id,
+      paramedic_name,
+      unit_number,
+      shift_date,
+      items: items || [],
+      expiry_items: expiry_items || [],
+      notes: notes || "",
+      report_type: report_type || "inventory",
+      created_at: new Date()
+    };
+
+    await collection.insertOne(doc);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("[forms] equipment-inventory failed", error);
+    res.status(500).json({ ok: false, message: "Equipment inventory save failed" });
+  }
+});
+
 module.exports = router;
