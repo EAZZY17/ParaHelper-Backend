@@ -16,9 +16,10 @@ async function chatCompletion({ model, messages, temperature = 0.4 }) {
     {
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://parahelper.app",
-        "X-Title": "ParaHelper"
-      }
+        "HTTP-Referer": process.env.OPENROUTER_HTTP_REFERER || "https://parahelper.app",
+        "X-Title": process.env.OPENROUTER_APP_TITLE || "ParaHelper"
+      },
+      timeout: 60000
     }
   );
 
