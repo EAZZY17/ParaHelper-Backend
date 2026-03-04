@@ -20,6 +20,36 @@ function buildSystemPrompt({ paramedic, mode, tone }) {
   return `${base}\n${modePrompt}\n${tonePrompt}\n${guardrails}\nParamedic: ${paramedic.first_name} (${paramedic.role})`;
 }
 
+function isGreeting(text) {
+  const normalized = (text || "").trim().toLowerCase();
+  return /^(hi|hey|hello|yo|good morning|good afternoon|good evening)\b/.test(normalized);
+}
+
+function buildLocalFallback({ message, paramedic, knowledgeAnswer, error }) {
+  const status = error?.response?.status;
+  const hasKnowledge =
+    typeof knowledgeAnswer === "string" &&
+    knowledgeAnswer.trim() &&
+    knowledgeAnswer !== "No medical reference found.";
+
+  if (isGreeting(message)) {
+    if (hasKnowledge) {
+      return `Hey ${paramedic.first_name}. ${knowledgeAnswer} What do you want to tackle first?`;
+    }
+    return `Hey ${paramedic.first_name} — I'm here. What do you need help with right now?`;
+  }
+
+  if (hasKnowledge) {
+    return `${knowledgeAnswer} If you want, I can help turn that into a quick action plan.`;
+  }
+
+  if (status === 401 || status === 403) {
+    return "I can't reach my AI provider because the backend API key appears invalid or expired. Update OPENROUTER_API_KEY, then try again.";
+  }
+
+  return "I couldn't reach my AI engine just now, but I'm still here. Try again in a moment.";
+}
+
 async function generateReply({ message, paramedic, knowledgeAnswer, summary, tone }) {
   const mode = detectStressMode(message) ? "stress" : "normal";
   console.log(`[conversationAgent] mode=${mode}`);
@@ -40,14 +70,14 @@ async function generateReply({ message, paramedic, knowledgeAnswer, summary, ton
 
   try {
     const reply = await chatCompletion({ model, messages: prompt });
-    return { reply, mode };
+    const text = reply != null && typeof reply === "string" ? reply.trim() : "";
+    return { reply: text || "I didn't get a reply from the model. Try again?", mode };
   } catch (error) {
     const detail = error.response?.data
       ? JSON.stringify(error.response.data)
       : error.message;
     console.error("[conversationAgent] chatCompletion failed", detail);
-    const fallback =
-      "I couldn't reach my AI engine just now, but I'm still here. Try again in a moment, or check that the backend API key is configured.";
+    const fallback = buildLocalFallback({ message, paramedic, knowledgeAnswer, error });
     return { reply: fallback, mode };
   }
 }
