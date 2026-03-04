@@ -6,12 +6,12 @@ const router = express.Router();
 
 router.post("/login", async (req, res) => {
   try {
-    const { badge_number, pin } = req.body;
+    const { paramedic_id } = req.body;
     const db = getDb("parahelper_users");
-    const paramedic = await db.collection("paramedics").findOne({ badge_number, pin });
+    const paramedic = await db.collection("paramedics").findOne({ paramedic_id });
 
     if (!paramedic) {
-      return res.status(401).json({ ok: false, message: "Invalid badge or PIN" });
+      return res.status(401).json({ ok: false, message: "Invalid paramedic ID" });
     }
 
     let briefing = `Morning ${paramedic.first_name}!`;

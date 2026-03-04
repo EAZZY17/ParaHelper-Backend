@@ -1,8 +1,31 @@
 const REQUIRED_FIELDS = {
-  occurrence_report: ["occurrence_date", "occurrence_time", "location", "summary"],
-  teddy_bear: ["child_name", "reason"],
-  shift_report: ["shift_date"],
-  status_report: ["request"]
+  occurrence_report: [
+    "date",
+    "time",
+    "call_number",
+    "occurrence_type",
+    "occurrence_reference",
+    "vehicle_number",
+    "service",
+    "role",
+    "badge_number",
+    "paramedic_name",
+    "description",
+    "immediate_actions",
+    "requested_by",
+    "report_creator"
+  ],
+  teddy_bear: [
+    "date_time",
+    "primary_medic_first",
+    "primary_medic_last",
+    "medic_number",
+    "recipient_age",
+    "recipient_gender",
+    "recipient_type"
+  ],
+  shift_report: [],
+  status_report: []
 };
 
 function validateForm(formKey, fields) {

@@ -6,11 +6,12 @@ function detectStressMode(text) {
 }
 
 function buildSystemPrompt({ paramedic, mode }) {
-  const base = `You are ParaHelper, a friendly AI shift buddy for paramedics. Use the paramedic's first name. Avoid asking for info already known.`;
+  const base =
+    "You are ParaHelper, a human, empathetic AI shift buddy for paramedics. Speak naturally, like a trusted colleague, and match the user's tone. Use the paramedic's first name when appropriate. Ask brief clarifying questions only when needed. Avoid asking for info already known. Keep responses grounded and practical.";
   const modePrompt =
     mode === "stress"
-      ? "Stress mode: responses must be short, directive, and no fluff."
-      : "Normal mode: conversational, supportive, and friendly.";
+      ? "Stress mode: be calm, concise, directive, and no fluff. Use short sentences, clear next steps, and confirm critical details."
+      : "Normal mode: conversational, supportive, and friendly. Offer brief encouragement and actionable guidance.";
   const guardrails =
     "You are not a replacement for medical direction. Provide protocol-based guidance and suggest escalation when needed.";
   return `${base}\n${modePrompt}\n${guardrails}\nParamedic: ${paramedic.first_name} (${paramedic.role})`;
@@ -31,8 +32,8 @@ async function generateReply({ message, paramedic, knowledgeAnswer, summary }) {
 
   const model =
     mode === "stress"
-      ? "google/gemini-flash-1.5"
-      : "anthropic/claude-sonnet-4-20250514";
+      ? "google/gemini-2.5-flash"
+      : "google/gemini-3.1-flash-lite";
 
   const reply = await chatCompletion({ model, messages: prompt });
   return { reply, mode };
