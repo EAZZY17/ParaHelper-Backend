@@ -18,6 +18,7 @@ const { generateReply } = require("../agents/conversationAgent");
 const { summarizeConversation } = require("../agents/summarizerAgent");
 const { handleAdminTask } = require("../agents/adminAgent");
 const { textToSpeech } = require("../utils/tts");
+const { detectTone } = require("../agents/toneAgent");
 
 const router = express.Router();
 
@@ -53,6 +54,9 @@ router.post("/message", async (req, res) => {
     const messagesCollection = convoDb.collection("messages");
     const existingConversation = await conversationsCollection.findOne({ conversation_id: convoId });
     const pending = existingConversation?.pending || null;
+    const previousTone = existingConversation?.tone;
+    const detectedTone = detectTone(cleaned);
+    const tone = detectedTone === "neutral" ? previousTone || "neutral" : detectedTone;
 
     await messagesCollection.insertOne({
       conversation_id: convoId,
@@ -78,7 +82,7 @@ router.post("/message", async (req, res) => {
         content: reply,
         created_at: new Date()
       });
-      const audioUrl = await textToSpeech(reply);
+      const audioUrl = await textToSpeech(reply, tone);
       res.json({
         ok: true,
         conversation_id: convoId,
@@ -134,7 +138,7 @@ router.post("/message", async (req, res) => {
             { conversation_id: convoId },
             { $set: { pending: updated, updated_at: new Date() } }
           );
-          return respondWith(getQuestion(activeForm, nextMissing), {
+          return respondWith(getQuestion(activeForm, nextMissing, tone), {
             forms: updated.forms_queue,
             extracted: updated.forms,
             guardrails,
@@ -152,7 +156,7 @@ router.post("/message", async (req, res) => {
               { conversation_id: convoId },
               { $set: { pending: updated, updated_at: new Date() } }
             );
-            return respondWith(getQuestion(updated.active_form, nextFormMissing), {
+            return respondWith(getQuestion(updated.active_form, nextFormMissing, tone), {
               forms: updated.forms_queue,
               extracted: updated.forms,
               guardrails,
@@ -203,6 +207,7 @@ router.post("/message", async (req, res) => {
               conversation_id: convoId,
               paramedic_id,
               pending: pendingState,
+              tone,
               updated_at: new Date()
             }
           },
@@ -212,7 +217,7 @@ router.post("/message", async (req, res) => {
           pendingState.forms_queue.length > 1
             ? "I can file both forms. Let's start with the Occurrence Report."
             : "Got it. Let's get this form filed.";
-        return respondWith(`${intro} ${getQuestion(pendingState.active_form, nextMissing)}`, {
+        return respondWith(`${intro} ${getQuestion(pendingState.active_form, nextMissing, tone)}`, {
           forms,
           extracted,
           guardrails,
@@ -228,6 +233,7 @@ router.post("/message", async (req, res) => {
             conversation_id: convoId,
             paramedic_id,
             pending: pendingState,
+            tone,
             updated_at: new Date()
           }
         },
@@ -257,6 +263,7 @@ router.post("/message", async (req, res) => {
             conversation_id: convoId,
             paramedic_id,
             summary,
+            tone,
             updated_at: new Date()
           }
         },
@@ -266,7 +273,7 @@ router.post("/message", async (req, res) => {
 
     const { reply, mode } = adminResponse
       ? { reply: adminResponse, mode: "normal" }
-      : await generateReply({ message: cleaned, paramedic, knowledgeAnswer, summary });
+      : await generateReply({ message: cleaned, paramedic, knowledgeAnswer, summary, tone });
 
     return respondWith(reply, {
       mode,

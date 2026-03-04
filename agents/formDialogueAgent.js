@@ -81,18 +81,78 @@ const REQUIRED_FIELDS = {
 
 const FIELD_QUESTIONS = {
   occurrence_report: {
-    time: "Got it — roughly what time did it happen?",
-    call_number: "What’s the call number?",
-    occurrence_type: "Was this call‑related or non‑call‑related?",
-    occurrence_reference: "Do you have an occurrence reference number handy?",
-    description: "In a sentence or two, what happened?",
-    immediate_actions: "What did you do right after it happened?",
-    requested_by: "Who asked for the report?"
+    default: {
+      time: "Got it — roughly what time did it happen?",
+      call_number: "What’s the call number?",
+      occurrence_type: "Was this call‑related or non‑call‑related?",
+      occurrence_reference: "Do you have an occurrence reference number handy?",
+      description: "In a sentence or two, what happened?",
+      immediate_actions: "What did you do right after it happened?",
+      requested_by: "Who asked for the report?"
+    },
+    "casual/slang": {
+      time: "Real quick — what time was it?",
+      call_number: "What’s the call #?",
+      occurrence_type: "Call‑related or nah?",
+      occurrence_reference: "You got a reference #?",
+      description: "Quick rundown — what happened?",
+      immediate_actions: "What’d you do right after?",
+      requested_by: "Who asked for it?"
+    },
+    formal: {
+      time: "What time did this occur?",
+      call_number: "May I have the call number?",
+      occurrence_type: "Was this call‑related or non‑call‑related?",
+      occurrence_reference: "Do you have an occurrence reference number?",
+      description: "Please summarize what occurred.",
+      immediate_actions: "What immediate actions were taken?",
+      requested_by: "Who requested the report?"
+    },
+    "stressed/short": {
+      time: "Time?",
+      call_number: "Call #?",
+      occurrence_type: "Call‑related or non‑call?",
+      occurrence_reference: "Reference #?",
+      description: "What happened?",
+      immediate_actions: "Actions taken?",
+      requested_by: "Requested by?"
+    },
+    tired: {
+      time: "Almost done — what time was it?",
+      call_number: "What’s the call number?",
+      occurrence_type: "Call‑related or non‑call?",
+      occurrence_reference: "Any reference number?",
+      description: "Quick summary of what happened?",
+      immediate_actions: "What did you do right after?",
+      requested_by: "Who requested it?"
+    }
   },
   teddy_bear: {
-    recipient_age: "How old was the recipient?",
-    recipient_gender: "What gender should I record (Male, Female, Other, Prefer not to say)?",
-    recipient_type: "Recipient type — Patient, Family, Bystander, or Other?"
+    default: {
+      recipient_age: "How old was the recipient?",
+      recipient_gender: "What gender should I record (Male, Female, Other, Prefer not to say)?",
+      recipient_type: "Recipient type — Patient, Family, Bystander, or Other?"
+    },
+    "casual/slang": {
+      recipient_age: "How old were they?",
+      recipient_gender: "What gender should I put?",
+      recipient_type: "Recipient type — patient, family, bystander, or other?"
+    },
+    formal: {
+      recipient_age: "What was the recipient’s age?",
+      recipient_gender: "What gender should I record?",
+      recipient_type: "Please confirm the recipient type."
+    },
+    "stressed/short": {
+      recipient_age: "Age?",
+      recipient_gender: "Gender?",
+      recipient_type: "Recipient type?"
+    },
+    tired: {
+      recipient_age: "Quick one — how old were they?",
+      recipient_gender: "What gender should I record?",
+      recipient_type: "Recipient type?"
+    }
   }
 };
 
@@ -159,8 +219,11 @@ function getNextMissingField(guardrailResult, formKey) {
   return missing[0] || "";
 }
 
-function getQuestion(formKey, field) {
-  return FIELD_QUESTIONS?.[formKey]?.[field] || `Please provide ${field.replace(/_/g, " ")}.`;
+function getQuestion(formKey, field, tone = "neutral") {
+  const group = FIELD_QUESTIONS?.[formKey];
+  if (!group) return `Please provide ${field.replace(/_/g, " ")}.`;
+  const bucket = group[tone] || group.default;
+  return bucket?.[field] || `Please provide ${field.replace(/_/g, " ")}.`;
 }
 
 function buildConfirmationMessage(formKeys) {
