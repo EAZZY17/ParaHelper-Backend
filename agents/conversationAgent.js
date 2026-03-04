@@ -66,7 +66,7 @@ async function generateReply({ message, paramedic, knowledgeAnswer, summary, ton
   const model =
     mode === "stress"
       ? "google/gemini-2.5-flash"
-      : "google/gemini-2.5-flash";
+      : "google/gemini-2.0-flash-lite-001";
 
   try {
     const reply = await chatCompletion({ model, messages: prompt });

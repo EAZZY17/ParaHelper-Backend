@@ -1,8 +1,13 @@
 const axios = require("axios");
 
+<<<<<<< HEAD
+async function chatCompletion({ model, messages, temperature = 0.4, max_tokens = 1024 }) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+=======
 async function chatCompletion({ model, messages, temperature = 0.4 }) {
   const rawKey = process.env.OPENROUTER_API_KEY;
   const apiKey = typeof rawKey === "string" ? rawKey.trim() : "";
+>>>>>>> 4546a3093aa40de5b41473cd1a7a2ab642ee4756
   if (!apiKey) {
     throw new Error("OPENROUTER_API_KEY missing");
   }
@@ -12,7 +17,8 @@ async function chatCompletion({ model, messages, temperature = 0.4 }) {
     {
       model,
       messages,
-      temperature
+      temperature,
+      max_tokens
     },
     {
       headers: {

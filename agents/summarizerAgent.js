@@ -15,7 +15,11 @@ async function summarizeConversation(messages) {
   ];
 
   const summary = await chatCompletion({
+<<<<<<< HEAD
+    model: "google/gemini-2.0-flash-lite-001",
+=======
     model: "google/gemini-2.5-flash",
+>>>>>>> 4546a3093aa40de5b41473cd1a7a2ab642ee4756
     messages: prompt,
     temperature: 0.2
   });
