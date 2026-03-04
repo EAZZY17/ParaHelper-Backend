@@ -42,17 +42,22 @@ async function getCompliance(paramedicId) {
 }
 
 async function queryChroma(text, role) {
-  const chromaUrl = process.env.CHROMA_URL || "http://localhost:8000";
-  const client = new ChromaClient({ path: chromaUrl });
-  const collection = await client.getCollection({ name: "parahelper_medical" });
-  const result = await collection.query({
-    queryTexts: [text],
-    nResults: 3,
-    where: { $or: [{ role }, { role: "all" }] }
-  });
+  try {
+    const chromaUrl = process.env.CHROMA_URL || "http://localhost:8000";
+    const client = new ChromaClient({ path: chromaUrl });
+    const collection = await client.getCollection({ name: "parahelper_medical" });
+    const result = await collection.query({
+      queryTexts: [text],
+      nResults: 3,
+      where: { $or: [{ role }, { role: "all" }] }
+    });
 
-  const documents = result.documents?.[0] || [];
-  return documents.join("\n");
+    const documents = result.documents?.[0] || [];
+    return documents.join("\n");
+  } catch (error) {
+    console.warn("[knowledge] Chroma query failed", error.message);
+    return "";
+  }
 }
 
 async function answerQuery({ text, paramedic }) {

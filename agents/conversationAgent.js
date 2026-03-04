@@ -38,8 +38,15 @@ async function generateReply({ message, paramedic, knowledgeAnswer, summary, ton
       ? "google/gemini-2.5-flash"
       : "google/gemini-3.1-flash-lite";
 
-  const reply = await chatCompletion({ model, messages: prompt });
-  return { reply, mode };
+  try {
+    const reply = await chatCompletion({ model, messages: prompt });
+    return { reply, mode };
+  } catch (error) {
+    console.error("[conversationAgent] chatCompletion failed", error.message);
+    const fallback =
+      "I couldn't reach my AI engine just now, but I'm still here. Try again in a moment, or check that the backend API key is configured.";
+    return { reply: fallback, mode };
+  }
 }
 
 module.exports = { generateReply, detectStressMode };
