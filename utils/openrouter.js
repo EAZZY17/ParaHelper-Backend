@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-async function chatCompletion({ model, messages, temperature = 0.4 }) {
+async function chatCompletion({ model, messages, temperature = 0.4, max_tokens = 1024 }) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new Error("OPENROUTER_API_KEY missing");
@@ -11,7 +11,8 @@ async function chatCompletion({ model, messages, temperature = 0.4 }) {
     {
       model,
       messages,
-      temperature
+      temperature,
+      max_tokens
     },
     {
       headers: {
