@@ -40,7 +40,8 @@ async function generateReply({ message, paramedic, knowledgeAnswer, summary, ton
 
   try {
     const reply = await chatCompletion({ model, messages: prompt });
-    return { reply, mode };
+    const text = reply != null && typeof reply === "string" ? reply.trim() : "";
+    return { reply: text || "I didn't get a reply from the model. Try again?", mode };
   } catch (error) {
     const detail = error.response?.data
       ? JSON.stringify(error.response.data)

@@ -42,8 +42,11 @@ async function getCompliance(paramedicId) {
 }
 
 async function queryChroma(text, role) {
+  const chromaUrl = (process.env.CHROMA_URL || "").trim();
+  if (!chromaUrl) {
+    return "";
+  }
   try {
-    const chromaUrl = process.env.CHROMA_URL || "http://localhost:8000";
     const client = new ChromaClient({ path: chromaUrl });
     const collection = await client.getCollection({ name: "parahelper_medical" });
     const result = await collection.query({
@@ -61,23 +64,28 @@ async function queryChroma(text, role) {
 }
 
 async function answerQuery({ text, paramedic }) {
-  const lower = text.toLowerCase();
+  try {
+    const lower = text.toLowerCase();
 
-  if (lower.includes("weather")) {
-    return getWeather();
-  }
-  if (lower.includes("hospital")) {
-    return hospitalRecommendation();
-  }
-  if (lower.includes("schedule") || lower.includes("shift")) {
-    return getSchedule(paramedic.paramedic_id);
-  }
-  if (lower.includes("compliance") || lower.includes("certification")) {
-    return getCompliance(paramedic.paramedic_id);
-  }
+    if (lower.includes("weather")) {
+      return await getWeather();
+    }
+    if (lower.includes("hospital")) {
+      return await hospitalRecommendation();
+    }
+    if (lower.includes("schedule") || lower.includes("shift")) {
+      return await getSchedule(paramedic.paramedic_id);
+    }
+    if (lower.includes("compliance") || lower.includes("certification")) {
+      return await getCompliance(paramedic.paramedic_id);
+    }
 
-  const knowledge = await queryChroma(text, paramedic.role || "all");
-  return knowledge || "No medical reference found.";
+    const knowledge = await queryChroma(text, paramedic.role || "all");
+    return knowledge || "No medical reference found.";
+  } catch (error) {
+    console.warn("[knowledge] answerQuery failed", error.message);
+    return "";
+  }
 }
 
 module.exports = { answerQuery };

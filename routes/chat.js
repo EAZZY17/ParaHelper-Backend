@@ -66,18 +66,24 @@ router.post("/message", async (req, res) => {
     };
 
     const respondWith = async (reply, extra = {}) => {
+      const safeReply = typeof reply === "string" ? reply : String(reply ?? "");
       await messagesCollection.insertOne({
         conversation_id: convoId,
         paramedic_id,
         role: "assistant",
-        content: reply,
+        content: safeReply,
         created_at: new Date()
       });
-      const audioUrl = await textToSpeech(reply, tone);
+      let audioUrl = null;
+      try {
+        audioUrl = await textToSpeech(safeReply, tone);
+      } catch (ttsErr) {
+        console.warn("[chat] textToSpeech failed", ttsErr.message);
+      }
       res.json({
         ok: true,
         conversation_id: convoId,
-        reply,
+        reply: safeReply,
         audio_url: audioUrl,
         ...extra
       });
@@ -174,9 +180,14 @@ router.post("/message", async (req, res) => {
     const guardrails = validateAll(extracted);
 
     const adminResponse = await handleAdminTask({ text: cleaned, paramedic });
-    const knowledgeAnswer = shouldUseKnowledge()
-      ? await answerQuery({ text: cleaned, paramedic })
-      : "";
+    let knowledgeAnswer = "";
+    try {
+      knowledgeAnswer = shouldUseKnowledge()
+        ? await answerQuery({ text: cleaned, paramedic })
+        : "";
+    } catch (knowledgeErr) {
+      console.warn("[chat] answerQuery failed", knowledgeErr.message);
+    }
 
     const formKeys = forms.filter((key) => ["occurrence_report", "teddy_bear"].includes(key));
     if (formKeys.length) {
@@ -241,32 +252,37 @@ router.post("/message", async (req, res) => {
     let summary = "";
     const count = await messagesCollection.countDocuments({ conversation_id: convoId });
     if (count % 15 === 0) {
-      const recent = await messagesCollection
-        .find({ conversation_id: convoId })
-        .sort({ created_at: -1 })
-        .limit(20)
-        .toArray();
-      summary = await summarizeConversation(recent.reverse());
-      await convoDb.collection("conversations").updateOne(
-        { conversation_id: convoId },
-        {
-          $set: {
-            conversation_id: convoId,
-            paramedic_id,
-            summary,
-            tone,
-            updated_at: new Date()
-          }
-        },
-        { upsert: true }
-      );
+      try {
+        const recent = await messagesCollection
+          .find({ conversation_id: convoId })
+          .sort({ created_at: -1 })
+          .limit(20)
+          .toArray();
+        summary = await summarizeConversation(recent.reverse());
+        await convoDb.collection("conversations").updateOne(
+          { conversation_id: convoId },
+          {
+            $set: {
+              conversation_id: convoId,
+              paramedic_id,
+              summary,
+              tone,
+              updated_at: new Date()
+            }
+          },
+          { upsert: true }
+        );
+      } catch (summaryErr) {
+        console.warn("[chat] summarize failed", summaryErr.message);
+      }
     }
 
     const { reply, mode } = adminResponse
       ? { reply: adminResponse, mode: "normal" }
       : await generateReply({ message: cleaned, paramedic, knowledgeAnswer, summary, tone });
 
-    return respondWith(reply, {
+    const finalReply = typeof reply === "string" ? reply : String(reply ?? "");
+    return respondWith(finalReply, {
       mode,
       forms,
       extracted,
