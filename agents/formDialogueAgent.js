@@ -81,18 +81,18 @@ const REQUIRED_FIELDS = {
 
 const FIELD_QUESTIONS = {
   occurrence_report: {
-    time: "What time did this happen?",
-    call_number: "What is the call number?",
-    occurrence_type: "Was this call-related or non-call-related?",
-    occurrence_reference: "Do you have an occurrence reference number?",
-    description: "Briefly describe what happened.",
-    immediate_actions: "What immediate actions did you take?",
-    requested_by: "Who requested the report?"
+    time: "Got it — roughly what time did it happen?",
+    call_number: "What’s the call number?",
+    occurrence_type: "Was this call‑related or non‑call‑related?",
+    occurrence_reference: "Do you have an occurrence reference number handy?",
+    description: "In a sentence or two, what happened?",
+    immediate_actions: "What did you do right after it happened?",
+    requested_by: "Who asked for the report?"
   },
   teddy_bear: {
     recipient_age: "How old was the recipient?",
-    recipient_gender: "What is the recipient gender (Male, Female, Other, Prefer not to say)?",
-    recipient_type: "What is the recipient type (Patient, Family, Bystander, Other)?"
+    recipient_gender: "What gender should I record (Male, Female, Other, Prefer not to say)?",
+    recipient_type: "Recipient type — Patient, Family, Bystander, or Other?"
   }
 };
 
