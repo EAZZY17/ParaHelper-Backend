@@ -2,7 +2,7 @@ function detectForms(text) {
   const lower = text.toLowerCase();
   const forms = new Set();
 
-  if (/(accident|incident|hit|damage|collision|broke|fell|spill|backed into|clipped|occurrence|report|station door|equipment)/.test(lower)) {
+  if (/(ems\s*occurrence|occurrence\s*report|file\s*(an?)?\s*occurrence|want\s+to\s+do\s+(an?\s+)?occurrence|need\s+to\s+file\s+(an?\s+)?(ems\s+)?occurrence|accident|incident|hit|damage|collision|broke|fell|spill|backed into|clipped|occurrence|station door|equipment)/.test(lower) || /\breport\b.*\b(occurrence|ems|incident)\b/i.test(lower)) {
     forms.add("occurrence_report");
   }
   if (/(teddy|bear|teddy bear|comfort|gave a bear|scared kid|scared child|comfort item|stuffed animal)/.test(lower)) {

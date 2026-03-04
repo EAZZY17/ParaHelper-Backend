@@ -82,13 +82,20 @@ const REQUIRED_FIELDS = {
 const FIELD_QUESTIONS = {
   occurrence_report: {
     default: {
-      time: "Got it — roughly what time did it happen?",
+      date: "What date did the occurrence happen? (e.g. today or YYYY-MM-DD)",
+      time: "Roughly what time did it happen?",
       call_number: "What’s the call number?",
       occurrence_type: "Was this call‑related or non‑call‑related?",
-      occurrence_reference: "Do you have an occurrence reference number handy?",
+      occurrence_reference: "Do you have an occurrence reference number?",
+      vehicle_number: "What vehicle or unit number were you in?",
+      service: "Which service? (e.g. EMS, Ambulance)",
+      role: "Your role? (e.g. ACP, PCP)",
+      badge_number: "Your badge number?",
+      paramedic_name: "Paramedic name for the report?",
       description: "In a sentence or two, what happened?",
       immediate_actions: "What did you do right after it happened?",
-      requested_by: "Who asked for the report?"
+      requested_by: "Who asked for the report?",
+      report_creator: "Who is completing this report? (your name)"
     },
     "casual/slang": {
       time: "Real quick — what time was it?",
@@ -100,22 +107,36 @@ const FIELD_QUESTIONS = {
       requested_by: "Who asked for it?"
     },
     formal: {
+      date: "On what date did the occurrence take place?",
       time: "What time did this occur?",
       call_number: "May I have the call number?",
-      occurrence_type: "Was this call‑related or non‑call‑related?",
+      occurrence_type: "Was this call-related or non-call-related?",
       occurrence_reference: "Do you have an occurrence reference number?",
+      vehicle_number: "What was the vehicle or unit number?",
+      service: "Which service should I record?",
+      role: "Your role, please?",
+      badge_number: "Your badge number?",
+      paramedic_name: "Name of the paramedic for the report?",
       description: "Please summarize what occurred.",
       immediate_actions: "What immediate actions were taken?",
-      requested_by: "Who requested the report?"
+      requested_by: "Who requested the report?",
+      report_creator: "Who is completing this report?"
     },
     "stressed/short": {
+      date: "Date?",
       time: "Time?",
       call_number: "Call #?",
-      occurrence_type: "Call‑related or non‑call?",
+      occurrence_type: "Call-related or non-call?",
       occurrence_reference: "Reference #?",
+      vehicle_number: "Unit #?",
+      service: "Service?",
+      role: "Role?",
+      badge_number: "Badge #?",
+      paramedic_name: "Name?",
       description: "What happened?",
       immediate_actions: "Actions taken?",
-      requested_by: "Requested by?"
+      requested_by: "Requested by?",
+      report_creator: "Report creator?"
     },
     tired: {
       time: "Almost done — what time was it?",
@@ -159,6 +180,20 @@ const FIELD_QUESTIONS = {
 function applyAnswerToField(formKey, field, text) {
   let value = text.trim();
   let confidence = value ? "medium" : "low";
+
+  if (field === "date") {
+    const lower = text.toLowerCase().trim();
+    if (/\btoday\b/.test(lower)) {
+      value = new Date().toISOString().slice(0, 10);
+      confidence = "high";
+    } else {
+      const dateMatch = text.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+      if (dateMatch) {
+        value = dateMatch[1];
+        confidence = "high";
+      }
+    }
+  }
 
   if (field === "time") {
     const parsed = parseTime(text);
