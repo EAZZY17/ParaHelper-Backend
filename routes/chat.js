@@ -22,19 +22,10 @@ const { detectTone } = require("../agents/toneAgent");
 
 const router = express.Router();
 
-function shouldUseKnowledge(text) {
-  const keywords = [
-    "dose",
-    "protocol",
-    "treatment",
-    "weather",
-    "hospital",
-    "schedule",
-    "shift",
-    "compliance",
-    "certification"
-  ];
-  return keywords.some((k) => text.toLowerCase().includes(k));
+function shouldUseKnowledge() {
+  // Always consult the knowledge layer so replies stay grounded
+  // in the stored protocols, operations data, and Chroma content.
+  return true;
 }
 
 router.post("/message", async (req, res) => {
@@ -183,7 +174,7 @@ router.post("/message", async (req, res) => {
     const guardrails = validateAll(extracted);
 
     const adminResponse = await handleAdminTask({ text: cleaned, paramedic });
-    const knowledgeAnswer = shouldUseKnowledge(cleaned)
+    const knowledgeAnswer = shouldUseKnowledge()
       ? await answerQuery({ text: cleaned, paramedic })
       : "";
 
